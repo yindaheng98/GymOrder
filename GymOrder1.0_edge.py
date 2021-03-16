@@ -144,7 +144,7 @@ def login(user, pw, browser):
 # 检查是否无text按钮
 
 
-def check(text, browser):
+def check_order(text, browser):
     buttons = browser.find_elements_by_tag_name('button')
     for button in buttons:
         if button.get_attribute("textContent").find(text) >= 0:
@@ -152,45 +152,41 @@ def check(text, browser):
     return False
 
 
-def make_order(date, t):
-    date, t = str(date), str(t)
-    try:
+def make_order(str_day, str_weekday, str_time):
+    browser = webdriver.Edge(executable_path='./msedgedriver.exe')
+    print("------------------浏览器已启动----------------------")
+    login(user, pw, browser)
+    browser.implicitly_wait(5)
+    time.sleep(5)
+    browser.execute_script("changeInfo(null, '10', '羽毛球（九龙湖）')")
+    browser.implicitly_wait(5)
+    time.sleep(5)
+    browser.execute_script(
+        "changeInfo('"+str_day+str_weekday+"', 0, null)")
+    browser.implicitly_wait(5)
+    time.sleep(5)
+    browser.execute_script("orderSite('"+str_time+"')")
+    browser.implicitly_wait(5)
+    time.sleep(5)
+    browser.close()
+    print("------------------浏览器已关闭----------------------")
+
+
+def make_orders(order_list):
+    for order in order_list:
+        date, t = str(order[0]), str(order[1])
         print("预约一个%s %s的场馆" % (date_list[date], time_list[t]))
         today = datetime.date.today()
         for i in range(0, 3):
             day = today + datetime.timedelta(days=i)
             weekday = str(day.weekday()+1)
             if weekday == date:
-                browser = webdriver.Edge(executable_path='./msedgedriver.exe')
-                print("------------------浏览器已启动----------------------")
-                login(user, pw, browser)
-                browser.implicitly_wait(5)
-                time.sleep(5)
                 str_day = day.strftime('%Y-%m-%d')
                 str_weekday = date_list[weekday]
                 str_time = time_list[t]
                 print("%s是%s, 可以预约" % (str_day, str_weekday))
-                browser.execute_script("changeInfo(null, '10', '羽毛球（九龙湖）')")
-                browser.implicitly_wait(5)
-                time.sleep(5)
-                browser.execute_script(
-                    "changeInfo('"+str_day+str_weekday+"', 0, null)")
-                browser.implicitly_wait(5)
-                time.sleep(5)
-                browser.execute_script("orderSite('"+str_time+"')")
-                browser.implicitly_wait(5)
-                time.sleep(5)
-                browser.close()
-                print("------------------浏览器已关闭----------------------")
-                time.sleep(3)
+                make_order(str_day, str_weekday, str_time)
                 break
-    except Exception as r:
-        print("未知错误 %s" % (r))
-
-
-def make_orders(order_list):
-    for order in order_list:
-        make_order(order[0], order[1])
 
 
 if __name__ == "__main__":

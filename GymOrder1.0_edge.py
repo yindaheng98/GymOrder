@@ -12,7 +12,7 @@ import json
 import datetime
 import requests
 from PicProcess import getResutlFromBuffer
-
+import threading
 # 加启动配置 禁用日志log
 # ie capabilities
 # capabilities = DesiredCapabilities.INTERNETEXPLORER
@@ -164,6 +164,7 @@ def make_order(url):
 
 
 def make_orders(order_list):
+    thread_list = []
     for order in order_list:
         date, t = str(order[0]), str(order[1])
         print("预约一个%s %s的场馆" % (date_list[date], time_list[t]))
@@ -176,8 +177,15 @@ def make_orders(order_list):
                 str_weekday = date_list[weekday]
                 str_time = time_list[t]
                 print("%s是%s, 可以预约" % (str_day, str_weekday))
-                make_order(url % (str_day, str_time))
+                thread_list.append(
+                    threading.Thread(target=make_order,
+                                     args=(url % (str_day, str_time),)))
                 break
+    for t in thread_list:
+        t.start()
+        print('启动线程')
+    for t in thread_list:
+        t.join()
 
 
 if __name__ == "__main__":

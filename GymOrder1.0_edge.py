@@ -198,6 +198,17 @@ def make_orders(order_list):
 
 
 if __name__ == "__main__":
-    user, pw = enterUserPW()
-    order_list = enterOrderList()
-    make_orders(order_list)
+    while True:
+        now = datetime.datetime.now()
+        nextDay = now + datetime.timedelta(days=1)
+        # 登陆时间 7:59:55s
+        loginTime = datetime.datetime(
+            nextDay.year, nextDay.month, nextDay.day, 7, 59, 55)
+
+        while(now < loginTime):
+            now = datetime.datetime.now()
+            time.sleep(1)
+            print("Login Time: %s Now: %s" % (loginTime, now))
+        user, pw = enterUserPW()
+        order_list = enterOrderList()
+        make_orders(order_list)

@@ -140,7 +140,13 @@ def login(user, pw, browser):
     login_button.submit()
 
 
-def make_order(browser):
+def make_order(url):
+    browser = webdriver.Edge(executable_path='./msedgedriver.exe')
+    print("------------------浏览器已启动----------------------")
+    browser.get(url)
+    time.sleep(5)
+    login(user, pw, browser)
+    time.sleep(5)
     dictCookies = browser.get_cookies()
     s = requests.Session()
     c = [s.cookies.set(c['name'], c['value']) for c in dictCookies]
@@ -152,6 +158,9 @@ def make_order(browser):
     validateCode.click()
     validateCode.send_keys(str(code))
     browser.execute_script("submit()")
+    time.sleep(5)
+    browser.close()
+    print("------------------浏览器已关闭----------------------")
 
 
 def make_orders(order_list):
@@ -167,16 +176,7 @@ def make_orders(order_list):
                 str_weekday = date_list[weekday]
                 str_time = time_list[t]
                 print("%s是%s, 可以预约" % (str_day, str_weekday))
-                browser = webdriver.Edge(executable_path='./msedgedriver.exe')
-                print("------------------浏览器已启动----------------------")
-                browser.get(url % (str_day, str_time))
-                time.sleep(5)
-                login(user, pw, browser)
-                time.sleep(5)
-                make_order(browser)
-                time.sleep(5)
-                browser.close()
-                print("------------------浏览器已关闭----------------------")
+                make_order(url % (str_day, str_time))
                 break
 
 

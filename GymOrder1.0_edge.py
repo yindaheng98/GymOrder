@@ -152,12 +152,7 @@ def check_order(text, browser):
     return False
 
 
-def make_order(str_day, str_weekday, str_time):
-    browser = webdriver.Edge(executable_path='./msedgedriver.exe')
-    print("------------------浏览器已启动----------------------")
-    login(user, pw, browser)
-    browser.implicitly_wait(5)
-    time.sleep(5)
+def make_order(browser, str_day, str_weekday, str_time):
     browser.execute_script("changeInfo(null, '10', '羽毛球（九龙湖）')")
     browser.implicitly_wait(5)
     time.sleep(5)
@@ -168,8 +163,6 @@ def make_order(str_day, str_weekday, str_time):
     browser.execute_script("orderSite('"+str_time+"')")
     browser.implicitly_wait(5)
     time.sleep(5)
-    browser.close()
-    print("------------------浏览器已关闭----------------------")
 
 
 def make_orders(order_list):
@@ -185,7 +178,14 @@ def make_orders(order_list):
                 str_weekday = date_list[weekday]
                 str_time = time_list[t]
                 print("%s是%s, 可以预约" % (str_day, str_weekday))
-                make_order(str_day, str_weekday, str_time)
+                browser = webdriver.Edge(executable_path='./msedgedriver.exe')
+                print("------------------浏览器已启动----------------------")
+                login(user, pw, browser)
+                browser.implicitly_wait(5)
+                time.sleep(5)
+                make_order(browser, str_day, str_weekday, str_time)
+                browser.close()
+                print("------------------浏览器已关闭----------------------")
                 break
 
 

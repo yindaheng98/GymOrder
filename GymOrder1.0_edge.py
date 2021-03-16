@@ -140,16 +140,20 @@ def login(user, pw, browser):
     login_button.submit()
 
 
+lock = threading.Lock()
+
+
 def make_order(url):
     browser = webdriver.Edge(executable_path='./msedgedriver.exe')
     print("------------------浏览器已启动----------------------")
     browser.get(url)
-    time.sleep(5)
+    time.sleep(3)
     login(user, pw, browser)
-    time.sleep(5)
+    time.sleep(3)
     dictCookies = browser.get_cookies()
     s = requests.Session()
     c = [s.cookies.set(c['name'], c['value']) for c in dictCookies]
+    lock.acquire()
     response = s.get(
         'http://yuyue.seu.edu.cn:80/eduplus/control/validateimage')
     code = getResutlFromBuffer(response.content)
@@ -158,7 +162,11 @@ def make_order(url):
     validateCode.click()
     validateCode.send_keys(str(code))
     browser.execute_script("submit()")
-    time.sleep(5)
+    time.sleep(2)
+    lock.release()
+    time.sleep(1)
+    browser.get_screenshot_as_file(
+        ".\\screenshots\\"+str(datetime.datetime.now())+'.png')
     browser.close()
     print("------------------浏览器已关闭----------------------")
 

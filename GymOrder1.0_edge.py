@@ -126,9 +126,6 @@ def enterOrderList():
 
 
 def login(user, pw, browser):
-    browser.implicitly_wait(10)
-
-    # 填写用户名密码
     username = browser.find_element_by_id('username')
     password = browser.find_element_by_id('password')
     username.clear()
@@ -173,11 +170,10 @@ def make_orders(order_list):
                 browser = webdriver.Edge(executable_path='./msedgedriver.exe')
                 print("------------------浏览器已启动----------------------")
                 browser.get(url % (str_day, str_time))
+                time.sleep(5)
                 login(user, pw, browser)
-                browser.implicitly_wait(5)
                 time.sleep(5)
                 make_order(browser)
-                browser.implicitly_wait(5)
                 time.sleep(5)
                 browser.close()
                 print("------------------浏览器已关闭----------------------")

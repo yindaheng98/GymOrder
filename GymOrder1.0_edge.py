@@ -10,6 +10,8 @@ import time
 import random
 import json
 import datetime
+import requests
+from PicProcess import getResutlFromBuffer
 
 # 加启动配置 禁用日志log
 # ie capabilities
@@ -18,7 +20,7 @@ import datetime
 # capabilities.pop("version", None)
 
 
-url = "http://ehall.seu.edu.cn/appShow?appId=4815356910091974"
+url = "http://yuyue.seu.edu.cn/eduplus/order/initEditOrder.do?sclId=1&dayInfo=%s&itemId=10&time=%s"
 dailyDone = False  # 今日是否已经打卡
 
 # 创建打卡记录log文件
@@ -124,7 +126,6 @@ def enterOrderList():
 
 
 def login(user, pw, browser):
-    browser.get(url)
     browser.implicitly_wait(10)
 
     # 填写用户名密码
@@ -141,28 +142,19 @@ def login(user, pw, browser):
     login_button = browser.find_element_by_class_name('auth_login_btn')
     login_button.submit()
 
-# 检查是否无text按钮
 
-
-def check_order(text, browser):
-    buttons = browser.find_elements_by_tag_name('button')
-    for button in buttons:
-        if button.get_attribute("textContent").find(text) >= 0:
-            return True
-    return False
-
-
-def make_order(browser, str_day, str_weekday, str_time):
-    browser.execute_script("changeInfo(null, '10', '羽毛球（九龙湖）')")
-    browser.implicitly_wait(5)
-    time.sleep(5)
-    browser.execute_script(
-        "changeInfo('"+str_day+str_weekday+"', 0, null)")
-    browser.implicitly_wait(5)
-    time.sleep(5)
-    browser.execute_script("orderSite('"+str_time+"')")
-    browser.implicitly_wait(5)
-    time.sleep(5)
+def make_order(browser):
+    dictCookies = browser.get_cookies()
+    s = requests.Session()
+    c = [s.cookies.set(c['name'], c['value']) for c in dictCookies]
+    response = s.get(
+        'http://yuyue.seu.edu.cn:80/eduplus/control/validateimage')
+    code = getResutlFromBuffer(response.content)
+    validateCode = browser.find_element_by_id('validateCode')
+    validateCode.clear()
+    validateCode.click()
+    validateCode.send_keys(str(code))
+    browser.execute_script("submit()")
 
 
 def make_orders(order_list):
@@ -180,10 +172,13 @@ def make_orders(order_list):
                 print("%s是%s, 可以预约" % (str_day, str_weekday))
                 browser = webdriver.Edge(executable_path='./msedgedriver.exe')
                 print("------------------浏览器已启动----------------------")
+                browser.get(url % (str_day, str_time))
                 login(user, pw, browser)
                 browser.implicitly_wait(5)
                 time.sleep(5)
-                make_order(browser, str_day, str_weekday, str_time)
+                make_order(browser)
+                browser.implicitly_wait(5)
+                time.sleep(5)
                 browser.close()
                 print("------------------浏览器已关闭----------------------")
                 break

@@ -13,7 +13,6 @@ import datetime
 import requests
 from PicProcess import getResutlFromBuffer
 import threading
-from progress.bar import Bar
 import sys
 # 加启动配置 禁用日志log
 # ie capabilities

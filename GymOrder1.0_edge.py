@@ -13,6 +13,8 @@ import datetime
 import requests
 from PicProcess import getResutlFromBuffer
 import threading
+from progress.bar import Bar
+import sys
 # 加启动配置 禁用日志log
 # ie capabilities
 # capabilities = DesiredCapabilities.INTERNETEXPLORER
@@ -229,6 +231,8 @@ if __name__ == "__main__":
 
         while(now < loginTime):
             now = datetime.datetime.now()
+            sys.stderr.write("\rLogin Time: %s Now: %s" % (loginTime, now))
+            sys.stderr.flush()
             time.sleep(1)
-            print("Login Time: %s Now: %s" % (loginTime, now))
+        print("\n")
         make_orders(order_list)

@@ -140,6 +140,16 @@ def login(user, pw, browser):
     login_button.submit()
 
 
+headers = {
+    'Accept': 'image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+    'Accept-Encoding': 'gzip, deflate',
+    'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
+    'Connection': 'keep-alive',
+    'Host': 'yuyue.seu.edu.cn',
+    'Referer': 'http://yuyue.seu.edu.cn/eduplus/order/order/initEditOrder.do?sclId=1&dayInfo=2021-03-17&itemId=10&time=11:30-12:30',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36 Edg/89.0.774.54',
+}
+
 lock = threading.Lock()
 
 
@@ -155,7 +165,8 @@ def make_order(url):
     c = [s.cookies.set(c['name'], c['value']) for c in dictCookies]
     lock.acquire()
     response = s.get(
-        'http://yuyue.seu.edu.cn:80/eduplus/control/validateimage')
+        'http://yuyue.seu.edu.cn:80/eduplus/control/validateimage',
+        headers=headers)
     code = getResutlFromBuffer(response.content)
     validateCode = browser.find_element_by_id('validateCode')
     validateCode.clear()

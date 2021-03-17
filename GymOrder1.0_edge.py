@@ -214,9 +214,18 @@ if __name__ == "__main__":
     while True:
         now = datetime.datetime.now()
         nextDay = now + datetime.timedelta(days=1)
-        # 登陆时间 7:59:55s
-        loginTime = datetime.datetime(
-            nextDay.year, nextDay.month, nextDay.day, 7, 59, 55)
+        if now.hour >= 7:
+            if now.hour <= 16:
+                loginTime = datetime.datetime(
+                    now.year, now.month, now.day, now.hour, 59, 55)
+            else:
+                loginTime = datetime.datetime(
+                    now.year, now.month, now.day+1, 7, 59, 55)
+        else:
+            loginTime = datetime.datetime(
+                now.year, now.month, now.day, 7, 59, 55)
+
+        # 登陆时间 7:59:55~16:59:55
 
         while(now < loginTime):
             now = datetime.datetime.now()

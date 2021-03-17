@@ -178,7 +178,7 @@ def make_order(url):
     lock.release()
     time.sleep(1)
     now = datetime.datetime.now()
-    fname = now.strftime("%Y%m%d-%H:%M:%S.")+str(now.microsecond)
+    fname = now.strftime("%Y%m%d-%H.%M.%S.")+str(now.microsecond)
     browser.get_screenshot_as_file("screenshots/"+fname+'.png')
     browser.close()
     print("------------------浏览器已关闭----------------------")

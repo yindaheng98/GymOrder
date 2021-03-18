@@ -28,7 +28,7 @@ dailyDone = False  # 今日是否已经打卡
 
 
 def writeLog(text):
-    with open('log.txt', 'a') as f:
+    with open('gym-log.txt', 'a') as f:
         s = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + ' ' + text
         print(s)
         f.write(s + '\n')
@@ -177,7 +177,7 @@ lock = threading.Lock()
 
 def make_order(url):
     browser = webdriver.Edge(executable_path='./msedgedriver.exe')
-    print("------------------浏览器已启动----------------------")
+    writeLog("------------------浏览器已启动----------------------")
     browser.get(url)
     time.sleep(3)
     login(user, pw, browser)
@@ -202,14 +202,14 @@ def make_order(url):
     fname = now.strftime("%Y%m%d-%H.%M.%S.")+str(now.microsecond)
     browser.get_screenshot_as_file("screenshots/"+fname+'.png')
     browser.close()
-    print("------------------浏览器已关闭----------------------")
+    writeLog("------------------浏览器已关闭----------------------")
 
 
 def make_orders(order_list):
     thread_list = []
     for order in order_list:
         date, t = str(order[0]), str(order[1])
-        print("预约一个%s %s的场馆" % (date_list[date], time_list[date][t]))
+        writeLog("预约一个%s %s的场馆" % (date_list[date], time_list[date][t]))
         today = datetime.date.today()
         for i in range(0, 3):
             day = today + datetime.timedelta(days=i)
@@ -218,14 +218,14 @@ def make_orders(order_list):
                 str_day = day.strftime('%Y-%m-%d')
                 str_weekday = date_list[weekday]
                 str_time = time_list[date][t]
-                print("%s是%s, 可以预约" % (str_day, str_weekday))
+                writeLog("%s是%s, 可以预约" % (str_day, str_weekday))
                 thread_list.append(
                     threading.Thread(target=make_order,
                                      args=(url % (str_day, str_time),)))
                 break
     for t in thread_list:
         t.start()
-        print('启动线程')
+        writeLog('启动线程')
     for t in thread_list:
         t.join()
 
@@ -255,5 +255,5 @@ if __name__ == "__main__":
             sys.stderr.write("\rLogin Time: %s Now: %s" % (loginTime, now))
             sys.stderr.flush()
             time.sleep(1)
-        print("\n")
+        writeLog("\n")
         make_orders(order_list)

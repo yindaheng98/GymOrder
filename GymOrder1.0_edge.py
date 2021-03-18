@@ -65,7 +65,7 @@ date_list = {
     '7': '周日',
 }
 
-time_list = {
+time_list_weekday = {
     '1': '11:30-12:30',
     '2': '12:30-13:30',
     '3': '18:00-19:00',
@@ -73,6 +73,29 @@ time_list = {
     '5': '20:00-21:00',
 }
 
+time_list_weekend = {
+    '1': '09:00-10:00',
+    '2': '10:00-11:00',
+    '3': '11:00-12:00',
+    '4': '12:00-13:00',
+    '5': '13:00-14:00',
+    '6': '14:00-15:00',
+    '7': '15:00-16:00',
+    '8': '16:00-17:00',
+    '9': '17:00-18:00',
+    '10': '18:00-19:00',
+    '11': '19:00-20:00',
+}
+
+time_list = {
+    '1': time_list_weekday,
+    '2': time_list_weekday,
+    '3': time_list_weekday,
+    '4': time_list_weekday,
+    '5': time_list_weekday,
+    '6': time_list_weekend,
+    '7': time_list_weekend,
+}
 
 def enterOrderList():
     # 记录下要预约什么时间的场馆，以后都不用重复输入
@@ -98,19 +121,19 @@ def enterOrderList():
                 else:
                     print('错误')
             print('你想预约哪个时间段的场馆？')
-            for i in range(1, len(time_list)+1):  # 输出日期列表
-                print(i, ")", time_list[str(i)])
+            for i in range(1, len(time_list[date])+1):  # 输出日期列表
+                print(i, ")", time_list[date][str(i)])
             while True:
                 time = input('请输入数字：')
                 time = str(time)
-                if time in time_list:
+                if time in time_list[date]:
                     time = int(time)
                     break
                 else:
                     print('错误')
             order_list.append([date, time])
             print('已添加计划：预约%s %s的场馆' %
-                  (date_list[str(date)], time_list[str(time)]))
+                  (date_list[str(date)], time_list[date][str(time)]))
             con = input("还需要添加其他时间吗？y/N")
             if con != 'y' and con != 'Y':
                 break
@@ -121,7 +144,8 @@ def enterOrderList():
     print('预约如下时间的场馆')
     for order in order_list:
         date, time = order
-        print('预约%s %s的场馆' % (date_list[str(date)], time_list[str(time)]))
+        print('预约%s %s的场馆' %
+              (date_list[str(date)], time_list[date][str(time)]))
 
     return order_list
 
@@ -188,7 +212,7 @@ def make_orders(order_list):
     thread_list = []
     for order in order_list:
         date, t = str(order[0]), str(order[1])
-        print("预约一个%s %s的场馆" % (date_list[date], time_list[t]))
+        print("预约一个%s %s的场馆" % (date_list[date], time_list[date][t]))
         today = datetime.date.today()
         for i in range(0, 3):
             day = today + datetime.timedelta(days=i)
@@ -196,7 +220,7 @@ def make_orders(order_list):
             if weekday == date:
                 str_day = day.strftime('%Y-%m-%d')
                 str_weekday = date_list[weekday]
-                str_time = time_list[t]
+                str_time = time_list[date][t]
                 print("%s是%s, 可以预约" % (str_day, str_weekday))
                 thread_list.append(
                     threading.Thread(target=make_order,

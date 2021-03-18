@@ -115,7 +115,6 @@ def enterOrderList():
                 date = input('请输入数字：')
                 date = str(date)
                 if date in date_list:
-                    date = int(date)
                     break
                 else:
                     print('错误')
@@ -126,13 +125,12 @@ def enterOrderList():
                 time = input('请输入数字：')
                 time = str(time)
                 if time in time_list[date]:
-                    time = int(time)
                     break
                 else:
                     print('错误')
-            order_list.append([date, time])
+            order_list.append([int(date), int(time)])
             print('已添加计划：预约%s %s的场馆' %
-                  (date_list[str(date)], time_list[date][str(time)]))
+                  (date_list[date], time_list[date][time]))
             con = input("还需要添加其他时间吗？y/N")
             if con != 'y' and con != 'Y':
                 break
@@ -144,7 +142,7 @@ def enterOrderList():
     for order in order_list:
         date, time = order
         print('预约%s %s的场馆' %
-              (date_list[str(date)], time_list[date][str(time)]))
+              (date_list[str(date)], time_list[str(date)][str(time)]))
 
     return order_list
 

@@ -8,6 +8,7 @@ from selenium.webdriver.support.wait import WebDriverWait #等待页面加载某
 from selenium.webdriver.chrome.options import Options
 import time
 import random
+import datetime
 
 # 加启动配置 禁用日志log
 # ie capabilities
@@ -100,6 +101,7 @@ if __name__ == "__main__":
             if dailyDone is True and check("退出", browser) is True: # 今日已完成打卡
                 sleep_time = (set_hour+24-time.localtime(time.time()).tm_hour)*3600 + (set_minite-time.localtime(time.time()).tm_min)*60
                 writeLog("下次打卡时间：明天" + str(set_hour) + ':' + str(set_minite) + "，" + "即" + str(sleep_time) + 's后')
+                browser.get_screenshot_as_file("screenshots/"+datetime.datetime.now().strftime("%Y%m%d-%H.%M.%S")+'.png')
                 browser.close()
                 print("------------------浏览器已关闭----------------------")
                 time.sleep(sleep_time)
@@ -133,10 +135,12 @@ if __name__ == "__main__":
                                         break
                                 break
                         break
+                browser.get_screenshot_as_file("screenshots/"+datetime.datetime.now().strftime("%Y%m%d-%H.%M.%S")+'.png')
                 browser.close()
                 print("------------------浏览器已关闭----------------------")
                 time.sleep(10) # 昏睡10s 为了防止网络故障未打上卡
             else:
+                browser.get_screenshot_as_file("screenshots/"+datetime.datetime.now().strftime("%Y%m%d-%H.%M.%S")+'.png')
                 browser.close()
                 print("------------------网站出现故障----------------------")
                 print("------------------浏览器已关闭----------------------")

@@ -211,7 +211,7 @@ def make_orders(order_list):
         date, t = str(order[0]), str(order[1])
         writeLog("预约一个%s %s的场馆" % (date_list[date], time_list[date][t]))
         today = datetime.date.today()
-        for i in range(0, 3):
+        for i in range(1, 3):
             day = today + datetime.timedelta(days=i)
             weekday = str(day.weekday()+1)
             if weekday == date:

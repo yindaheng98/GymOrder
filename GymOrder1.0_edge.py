@@ -14,6 +14,7 @@ import requests
 from PicProcess import getResutlFromBuffer
 import threading
 import sys
+from login import get_session_for_requests, enterUserPW, login
 # 加启动配置 禁用日志log
 # ie capabilities
 # capabilities = DesiredCapabilities.INTERNETEXPLORER
@@ -33,26 +34,6 @@ def writeLog(text):
         print(s)
         f.write(s + '\n')
         f.close()
-
-
-def enterUserPW():
-    # 创建账号密码文件，以后都不用重复输入
-    try:
-        with open("loginData.txt", mode='r', encoding='utf-8') as f:
-            # 去掉换行符
-            user = f.readline().strip()
-            pw = f.readline().strip()
-            f.close()
-    except FileNotFoundError:
-        print("Welcome to AUTO DO THE F***ING DAILY JOB, copyright belongs to S.H.")
-        with open("loginData.txt", mode='w', encoding='utf-8') as f:
-            user = input('Please Enter Your Username: ')
-            pw = input('Then Please Enter Your Password: ')
-            f.write(user + '\n')
-            f.write(pw + '\n')
-            f.close()
-
-    return user, pw
 
 
 date_list = {
@@ -95,6 +76,7 @@ time_list = {
     '6': time_list_weekend,
     '7': time_list_weekend,
 }
+
 
 def enterOrderList():
     # 记录下要预约什么时间的场馆，以后都不用重复输入
@@ -147,21 +129,6 @@ def enterOrderList():
     return order_list
 
 
-def login(user, pw, browser):
-    username = browser.find_element_by_id('username')
-    password = browser.find_element_by_id('password')
-    username.clear()
-    username.click()
-    password.clear()
-    password.click()
-    username.send_keys(user)
-    password.send_keys(pw)
-
-    # 点击登录
-    login_button = browser.find_element_by_class_name('auth_login_btn')
-    login_button.submit()
-
-
 headers = {
     'Accept': 'image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
     'Accept-Encoding': 'gzip, deflate',
@@ -180,11 +147,9 @@ def make_order(url):
     writeLog("------------------浏览器已启动----------------------")
     browser.get(url)
     time.sleep(3)
-    login(user, pw, browser)
+    login(browser)
     time.sleep(3)
-    dictCookies = browser.get_cookies()
-    s = requests.Session()
-    c = [s.cookies.set(c['name'], c['value']) for c in dictCookies]
+    s = get_session_for_requests(browser)
     lock.acquire()
     response = s.get(
         'http://yuyue.seu.edu.cn:80/eduplus/control/validateimage',
@@ -231,7 +196,7 @@ def make_orders(order_list):
 
 
 if __name__ == "__main__":
-    user, pw = enterUserPW()
+    enterUserPW()
     order_list = enterOrderList()
     make_orders(order_list)
     while True:

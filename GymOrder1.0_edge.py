@@ -29,7 +29,7 @@ dailyDone = False  # 今日是否已经打卡
 
 
 def writeLog(text):
-    with open('gym-log.txt', 'a') as f:
+    with open('logs/gym-log-%s.txt' % time.strftime("%Y-%m-%d", time.localtime()), 'a') as f:
         s = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + ' ' + text
         print(s)
         f.write(s + '\n')

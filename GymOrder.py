@@ -79,7 +79,9 @@ class SEUGymOrder:
 
     def _make_order(self, url):
         while datetime.datetime.now().hour < 8:  # 至少要到8点后才能开始
+            logging.info('现在是%s，还不能预约' % datetime.datetime.now())
             continue
+        logging.info('现在是%s，可以开始预约' % datetime.datetime.now())
         browser = self.bot.open(url)
         validateCode = WebDriverWait(browser, 10).until(
             lambda x: x.find_element_by_id('validateCode'))
@@ -120,7 +122,12 @@ class SEUGymOrder:
             t.join()
 
     def run(self):
-        self._make_orders()
+        while True:
+            try:
+                self._make_orders()
+                break
+            except Exception as e:
+                logging.error("未知错误 %s" % e)
 
 
 class SEUGymOrderFromFile(SEUGymOrder):
@@ -174,5 +181,8 @@ class SEUGymOrderFromFile(SEUGymOrder):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(filename='logs/gym-log-%s.log' % time.strftime("%Y-%m-%d", time.localtime()),
+                        format='%(asctime)s\t%(levelname)s\t%(filename)s:%(lineno)d\t%(message)s', level=logging.DEBUG,
+                        filemode='a', datefmt='%I:%M:%S %p')
     go = SEUGymOrderFromFile("orderList.json", SEURobotFromFile("loginData.txt"))
     go.run()

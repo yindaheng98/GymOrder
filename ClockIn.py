@@ -1,6 +1,7 @@
 import datetime
 import logging
 import random
+import time
 
 from selenium.webdriver.support.wait import WebDriverWait  # 等待页面加载某些元素
 
@@ -56,11 +57,21 @@ class SEUClockIn:
                 browser.get_screenshot_as_file(
                     "screenshots/" + datetime.datetime.now().strftime("%Y%m%d-%H.%M.%S") + '.png')
                 browser.close()
-                break
+                browser = self.bot.open(self.url)
+                WebDriverWait(browser, 10).until(lambda x: self._check(x, '退出'))
+                if self._check(browser, "新增") is False:
+                    logging.info("打卡已完成")
+                    browser.close()
+                    break
+                else:
+                    browser.close()
             except Exception as e:
                 logging.error("未知错误 %s" % e)
 
 
 if __name__ == "__main__":
+    logging.basicConfig(filename='logs/clk-log-%s.log' % time.strftime("%Y-%m-%d", time.localtime()),
+                        format='%(asctime)s\t%(levelname)s\t%(filename)s:%(lineno)d\t%(message)s', level=logging.DEBUG,
+                        filemode='a', datefmt='%I:%M:%S %p')
     clock = SEUClockIn(SEURobotFromFile("loginData.txt"))
     clock.run()

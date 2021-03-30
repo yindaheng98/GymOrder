@@ -1,40 +1,14 @@
-from selenium import webdriver
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-from selenium.webdriver import ActionChains
-from selenium.webdriver.common.by import By  # 按照什么方式查找，By.ID,By.CSS_SELECTOR
-from selenium.webdriver.common.keys import Keys  # 键盘按键操作
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.wait import WebDriverWait  # 等待页面加载某些元素
-from selenium.webdriver.chrome.options import Options
-import time
-import random
-import json
 import datetime
-import requests
-from PicProcess import getResutlFromBuffer
+import json
+import logging
 import threading
-import sys
-from login import get_session_for_requests, enterUserPW, login
-# 加启动配置 禁用日志log
-# ie capabilities
-# capabilities = DesiredCapabilities.INTERNETEXPLORER
-# capabilities.pop("platform", None)
-# capabilities.pop("version", None)
+import time
 
+import requests
+from selenium.webdriver.support.wait import WebDriverWait  # 等待页面加载某些元素
 
-url = "http://yuyue.seu.edu.cn/eduplus/order/initEditOrder.do?sclId=1&dayInfo=%s&itemId=10&time=%s"
-dailyDone = False  # 今日是否已经打卡
-
-# 创建打卡记录log文件
-
-
-def writeLog(text):
-    with open('logs/gym-log-%s.txt' % time.strftime("%Y-%m-%d", time.localtime()), 'a') as f:
-        s = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + ' ' + text
-        print(s)
-        f.write(s + '\n')
-        f.close()
-
+from PicProcess import getResutlFromBuffer
+from SEURobot import SEURobot, SEURobotFromFile
 
 date_list = {
     '1': '周一',
@@ -78,147 +52,125 @@ time_list = {
 }
 
 
-def enterOrderList():
-    # 记录下要预约什么时间的场馆，以后都不用重复输入
-    try:
-        with open("orderList.json", mode='r', encoding='utf-8') as f:
-            # 去掉换行符
-            order_list = json.load(f)
-            f.close()
-    except FileNotFoundError:
-        print("Welcome to AUTO DO THE F***ING DAILY JOB, copyright belongs to H.Y.")
-        order_list = []
-        while True:
-            date, time = 0, 0
-            print('你想预约星期几的场馆？')
-            for i in range(1, len(date_list)+1):  # 输出日期列表
-                print(i, ")", date_list[str(i)])
-            while True:
-                date = input('请输入数字：')
-                date = str(date)
-                if date in date_list:
+class SEUGymOrder:
+    def __init__(self, order_list, bot: SEURobot):
+        self.order_list = order_list
+        self.headers = {
+            'Accept': 'image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
+            'Connection': 'keep-alive',
+            'Host': 'yuyue.seu.edu.cn',
+            'Referer': 'http://yuyue.seu.edu.cn/eduplus/order/order/initEditOrder.do?sclId=1',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36 Edg/89.0.774.54',
+        }
+        self.url_format = 'http://yuyue.seu.edu.cn/eduplus/order/initEditOrder.do?sclId=1&dayInfo=%s&itemId=10&time=%s'
+        self.validateimage_url = "http://yuyue.seu.edu.cn:80/eduplus/control/validateimage"
+        self.bot = bot
+        self.lock = threading.Lock()
+
+    def getValidateCode(self, browser, url):
+        requests_session = requests.Session()
+        for cookie in browser.get_cookies():
+            requests_session.cookies.set(cookie['name'], cookie['value'])
+        self.headers["Referer"] = url
+        response = requests_session.get(self.validateimage_url, headers=self.headers)
+        return str(getResutlFromBuffer(response.content))
+
+    def _make_order(self, url):
+        browser = self.bot.open(url)
+        validateCode = WebDriverWait(browser, 10).until(
+            lambda x: x.find_element_by_id('validateCode'))
+        self.lock.acquire()
+        validateCode.clear()
+        validateCode.click()
+        validateCode.send_keys(self.getValidateCode(browser, url))
+        browser.execute_script("submit()")
+        time.sleep(2)
+        self.lock.release()
+        now = datetime.datetime.now()
+        fname = now.strftime("%Y%m%d-%H.%M.%S.") + str(now.microsecond)
+        browser.get_screenshot_as_file("screenshots/" + fname + '.png')
+        browser.close()
+
+    def _make_orders(self):
+        thread_list = []
+        for order in self.order_list:
+            date, t = str(order[0]), str(order[1])
+            logging.info("预约一个%s %s的场馆" % (date_list[date], time_list[date][t]))
+            today = datetime.date.today()
+            for i in range(1, 3):
+                day = today + datetime.timedelta(days=i)
+                weekday = str(day.weekday() + 1)
+                if weekday == date:
+                    str_day = day.strftime('%Y-%m-%d')
+                    str_weekday = date_list[weekday]
+                    str_time = time_list[date][t]
+                    logging.info("%s是%s, 可以预约" % (str_day, str_weekday))
+                    thread_list.append(
+                        threading.Thread(target=self._make_order,
+                                         args=(self.url_format % (str_day, str_time),)))
                     break
-                else:
-                    print('错误')
-            print('你想预约哪个时间段的场馆？')
-            for i in range(1, len(time_list[date])+1):  # 输出日期列表
-                print(i, ")", time_list[date][str(i)])
+        for t in thread_list:
+            t.start()
+            logging.info('启动线程')
+        for t in thread_list:
+            t.join()
+
+    def run(self):
+        self._make_orders()
+
+
+class SEUGymOrderFromFile(SEUGymOrder):
+    def __init__(self, path, bot: SEURobot):
+        # 记录下要预约什么时间的场馆，以后都不用重复输入
+        try:
+            with open(path, mode='r', encoding='utf-8') as f:
+                # 去掉换行符
+                order_list = json.load(f)
+                f.close()
+        except FileNotFoundError:
+            order_list = []
             while True:
-                time = input('请输入数字：')
-                time = str(time)
-                if time in time_list[date]:
+                print('你想预约星期几的场馆？')
+                for i in range(1, len(date_list) + 1):  # 输出日期列表
+                    print(i, ")", date_list[str(i)])
+                while True:
+                    date = input('请输入数字：')
+                    date = str(date)
+                    if date in date_list:
+                        break
+                    else:
+                        print('错误')
+                print('你想预约哪个时间段的场馆？')
+                for i in range(1, len(time_list[date]) + 1):  # 输出日期列表
+                    print(i, ")", time_list[date][str(i)])
+                while True:
+                    time = input('请输入数字：')
+                    time = str(time)
+                    if time in time_list[date]:
+                        break
+                    else:
+                        print('错误')
+                order_list.append([int(date), int(time)])
+                print('已添加计划：预约%s %s的场馆' %
+                      (date_list[date], time_list[date][time]))
+                con = input("还需要添加其他时间吗？y/N")
+                if con != 'y' and con != 'Y':
                     break
-                else:
-                    print('错误')
-            order_list.append([int(date), int(time)])
-            print('已添加计划：预约%s %s的场馆' %
-                  (date_list[date], time_list[date][time]))
-            con = input("还需要添加其他时间吗？y/N")
-            if con != 'y' and con != 'Y':
-                break
-        with open("orderList.json", mode='w', encoding='utf-8') as f:
-            json.dump(order_list, f)
-            f.close()
+            with open("orderList.json", mode='w', encoding='utf-8') as f:
+                json.dump(order_list, f)
+                f.close()
 
-    print('预约如下时间的场馆')
-    for order in order_list:
-        date, time = order
-        print('预约%s %s的场馆' %
-              (date_list[str(date)], time_list[str(date)][str(time)]))
+        logging.info('预约如下时间的场馆')
+        for order in order_list:
+            date, time = order
+            logging.info('预约%s %s的场馆' %
+                         (date_list[str(date)], time_list[str(date)][str(time)]))
 
-    return order_list
-
-
-headers = {
-    'Accept': 'image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
-    'Accept-Encoding': 'gzip, deflate',
-    'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
-    'Connection': 'keep-alive',
-    'Host': 'yuyue.seu.edu.cn',
-    'Referer': 'http://yuyue.seu.edu.cn/eduplus/order/order/initEditOrder.do?sclId=1&dayInfo=2021-03-17&itemId=10&time=11:30-12:30',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36 Edg/89.0.774.54',
-}
-
-lock = threading.Lock()
-
-
-def make_order(url):
-    browser = webdriver.Edge(executable_path='./msedgedriver.exe')
-    writeLog("------------------浏览器已启动----------------------")
-    browser.get(url)
-    time.sleep(3)
-    login(browser)
-    time.sleep(3)
-    s = get_session_for_requests(browser)
-    lock.acquire()
-    response = s.get(
-        'http://yuyue.seu.edu.cn:80/eduplus/control/validateimage',
-        headers=headers)
-    code = getResutlFromBuffer(response.content)
-    validateCode = browser.find_element_by_id('validateCode')
-    validateCode.clear()
-    validateCode.click()
-    validateCode.send_keys(str(code))
-    browser.execute_script("submit()")
-    time.sleep(2)
-    lock.release()
-    time.sleep(1)
-    now = datetime.datetime.now()
-    fname = now.strftime("%Y%m%d-%H.%M.%S.")+str(now.microsecond)
-    browser.get_screenshot_as_file("screenshots/"+fname+'.png')
-    browser.close()
-    writeLog("------------------浏览器已关闭----------------------")
-
-
-def make_orders(order_list):
-    thread_list = []
-    for order in order_list:
-        date, t = str(order[0]), str(order[1])
-        writeLog("预约一个%s %s的场馆" % (date_list[date], time_list[date][t]))
-        today = datetime.date.today()
-        for i in range(1, 3):
-            day = today + datetime.timedelta(days=i)
-            weekday = str(day.weekday()+1)
-            if weekday == date:
-                str_day = day.strftime('%Y-%m-%d')
-                str_weekday = date_list[weekday]
-                str_time = time_list[date][t]
-                writeLog("%s是%s, 可以预约" % (str_day, str_weekday))
-                thread_list.append(
-                    threading.Thread(target=make_order,
-                                     args=(url % (str_day, str_time),)))
-                break
-    for t in thread_list:
-        t.start()
-        writeLog('启动线程')
-    for t in thread_list:
-        t.join()
+        super().__init__(order_list, bot)
 
 
 if __name__ == "__main__":
-    enterUserPW()
-    order_list = enterOrderList()
-    make_orders(order_list)
-    while True:
-        now = datetime.datetime.now()
-        nextDay = now + datetime.timedelta(days=1)
-        if now.hour >= 7:
-            if now.hour <= 16:
-                loginTime = datetime.datetime(
-                    now.year, now.month, now.day, now.hour, 59, 55)
-            else:
-                loginTime = datetime.datetime(
-                    now.year, now.month, now.day+1, 7, 59, 55)
-        else:
-            loginTime = datetime.datetime(
-                now.year, now.month, now.day, 7, 59, 55)
-
-        # 登陆时间 7:59:55~16:59:55
-
-        while(now < loginTime):
-            now = datetime.datetime.now()
-            sys.stderr.write("\rLogin Time: %s Now: %s" % (loginTime, now))
-            sys.stderr.flush()
-            time.sleep(1)
-        writeLog("\n")
-        make_orders(order_list)
+    go = SEUGymOrderFromFile("orderList.json", SEURobotFromFile("loginData.txt"))
+    go.run()

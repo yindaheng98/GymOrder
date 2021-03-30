@@ -78,6 +78,8 @@ class SEUGymOrder:
         return str(getResutlFromBuffer(response.content))
 
     def _make_order(self, url):
+        while datetime.datetime.now().hour < 8:  # 至少要到8点后才能开始
+            continue
         browser = self.bot.open(url)
         validateCode = WebDriverWait(browser, 10).until(
             lambda x: x.find_element_by_id('validateCode'))

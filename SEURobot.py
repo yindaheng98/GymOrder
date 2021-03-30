@@ -1,9 +1,6 @@
-from selenium import webdriver
 import requests
-from selenium.webdriver.common.by import By
+from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from urllib.parse import urlparse
 
 
 def default_webdriver_init():
@@ -11,7 +8,7 @@ def default_webdriver_init():
 
 
 class SEURobot:
-    def __init__(self, username: str, pwssword: str, webdriver_init=default_webdriver_init):
+    def __init__(self, username: str, password: str, webdriver_init=default_webdriver_init):
         self.webdriver_init = webdriver_init
         login_url = "https://newids.seu.edu.cn/authserver/login"
         browser = self.webdriver_init()
@@ -25,7 +22,7 @@ class SEURobot:
             lambda x: x.find_element_by_id("password"))
         p.clear()
         p.click()
-        p.send_keys(pwssword)
+        p.send_keys(password)
         browser.find_element_by_class_name('auth_login_btn').submit()
         WebDriverWait(browser, 10).until(
             lambda x: x.find_element_by_class_name("auth_username"))
@@ -45,8 +42,27 @@ class SEURobot:
         return browser
 
 
+class SEURobotFromFile(SEURobot):
+    def __init__(self, path: str):
+        try:
+            with open(path, mode='r', encoding='utf-8') as f:
+                # 去掉换行符
+                username = f.readline().strip()
+                password = f.readline().strip()
+                f.close()
+        except FileNotFoundError:
+            with open(path, mode='w', encoding='utf-8') as f:
+                username = input('Please Enter Your Username: ')
+                password = input('Then Please Enter Your Password: ')
+                f.write(username + '\n')
+                f.write(password + '\n')
+                f.close()
+        super().__init__(username, password)
+
+
 if __name__ == "__main__":
-    bot = SEURobot('220201857', 'YHM19980228yhm')
+    bot = SEURobotFromFile('loginData.txt')
     browser = bot.open(
         "http://ehall.seu.edu.cn/qljfwapp2/sys/lwReportEpidemicSeu/*default/index.do")
     browser.implicitly_wait(10)
+    browser.close()

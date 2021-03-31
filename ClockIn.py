@@ -75,3 +75,11 @@ if __name__ == "__main__":
                         filemode='a', datefmt='%I:%M:%S %p')
     clock = SEUClockIn(SEURobotFromFile("loginData.txt"))
     clock.run()
+    while True:
+        time.sleep(1)
+        now = datetime.datetime.now()
+        if now.hour >= 8 and  now.hour < 9 and now.minute < 30:
+            logging.info("现在是%s, 可以签到了" % datetime.datetime.now())
+            clock.run()
+        else:
+            print("现在是%s, 没到时间，等一会" % datetime.datetime.now())

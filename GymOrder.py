@@ -186,3 +186,11 @@ if __name__ == "__main__":
                         filemode='a', datefmt='%I:%M:%S %p')
     go = SEUGymOrderFromFile("orderList.json", SEURobotFromFile("loginData.txt"))
     go.run()
+    while True:
+        time.sleep(1)
+        now = datetime.datetime.now()
+        if now.hour > 7 and  now.hour < 16 and now.minute > 58:
+            logging.info("现在是%s, 可以约了" % datetime.datetime.now())
+            go.run()
+        else:
+            print("现在是%s, 没到时间，等一会" % datetime.datetime.now())

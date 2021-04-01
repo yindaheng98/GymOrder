@@ -49,7 +49,8 @@ class SEUClockIn:
                 break
 
     def run(self):
-        while True:
+        for i in range(10):
+            logging.info("第%d次尝试"%i)
             try:
                 browser = self.bot.open(self.url)
                 WebDriverWait(browser, 10).until(lambda x: self._check(x, '退出'))

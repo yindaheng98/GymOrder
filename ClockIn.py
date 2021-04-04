@@ -84,3 +84,5 @@ if __name__ == "__main__":
             clock.run()
         else:
             print("现在是%s, 没到时间，等一会" % datetime.datetime.now())
+            if now.minute % 10 == 0:
+                logging.info("现在是%s, 没到时间，脚本在线" % datetime.datetime.now())

@@ -1,6 +1,5 @@
 import datetime
 import json
-import logging
 import threading
 import time
 
@@ -9,6 +8,9 @@ from selenium.webdriver.support.wait import WebDriverWait  # 等待页面加载�
 
 from PicProcess import getResutlFromBuffer
 from SEURobot import SEURobot, SEURobotFromFile
+from LogConf import getLogger
+
+logging = getLogger()
 
 date_list = {
     '1': '周一',
@@ -181,18 +183,17 @@ class SEUGymOrderFromFile(SEUGymOrder):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(filename='logs/gym-log-%s.log' % time.strftime("%Y-%m-%d", time.localtime()),
-                        format='%(asctime)s\t%(levelname)s\t%(filename)s:%(lineno)d\t%(message)s', level=logging.DEBUG,
-                        filemode='a', datefmt='%I:%M:%S %p')
+    from LogConf import getLogger
     go = SEUGymOrderFromFile("orderList.json", SEURobotFromFile("loginData.txt"))
     go.run()
     while True:
         time.sleep(1)
+        logger = getLogger()
         now = datetime.datetime.now()
         if now.hour > 7 and  now.hour < 16 and now.minute > 58:
-            logging.info("现在是%s, 可以约了" % datetime.datetime.now())
+            logger.info("现在是%s, 可以约了" % datetime.datetime.now())
             go.run()
         else:
             print("现在是%s, 没到时间，等一会" % datetime.datetime.now())
-            if now.minute % 10 == 0:
-                logging.info("现在是%s, 没到时间，脚本在线" % datetime.datetime.now())
+            if now.minute % 10 == 0 and now.second % 10 <= 1:
+                logger.info("现在是%s, 没到时间，脚本在线" % datetime.datetime.now())

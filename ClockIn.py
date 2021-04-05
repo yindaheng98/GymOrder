@@ -1,12 +1,13 @@
 import datetime
-import logging
 import random
 import time
 
 from selenium.webdriver.support.wait import WebDriverWait  # 等待页面加载某些元素
 
 from SEURobot import SEURobot, SEURobotFromFile
+from LogConf import getLogger
 
+logging = getLogger()
 
 class SEUClockIn:
     def __init__(self, bot: SEURobot):
@@ -71,18 +72,17 @@ class SEUClockIn:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(filename='logs/clk-log-%s.log' % time.strftime("%Y-%m-%d", time.localtime()),
-                        format='%(asctime)s\t%(levelname)s\t%(filename)s:%(lineno)d\t%(message)s', level=logging.DEBUG,
-                        filemode='a', datefmt='%I:%M:%S %p')
+    from LogConf import getLogger
     clock = SEUClockIn(SEURobotFromFile("loginData.txt"))
     clock.run()
     while True:
         time.sleep(1)
+        logger = getLogger()
         now = datetime.datetime.now()
         if now.hour >= 8 and  now.hour < 9 and now.minute < 30:
             logging.info("现在是%s, 可以签到了" % datetime.datetime.now())
             clock.run()
         else:
             print("现在是%s, 没到时间，等一会" % datetime.datetime.now())
-            if now.minute % 10 == 0:
+            if now.minute % 10 == 0 and now.second % 10 <= 1:
                 logging.info("现在是%s, 没到时间，脚本在线" % datetime.datetime.now())

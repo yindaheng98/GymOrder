@@ -183,12 +183,10 @@ class SEUGymOrderFromFile(SEUGymOrder):
 
 
 if __name__ == "__main__":
-    from LogConf import getLogger
     go = SEUGymOrderFromFile("orderList.json", SEURobotFromFile("loginData.txt"))
     go.run()
     while True:
         time.sleep(1)
-        logger = getLogger()
         now = datetime.datetime.now()
         if now.hour > 7 and  now.hour < 16 and now.minute > 58:
             logger.info("现在是%s, 可以约了" % datetime.datetime.now())

@@ -7,7 +7,7 @@ import requests
 from selenium.webdriver.support.wait import WebDriverWait  # 等待页面加载某些元素
 
 from PicProcess import getResutlFromBuffer
-from SEURobot import SEURobot, SEURobotFromFile
+from SEURobot import SEURobotFromFile
 from LogConf import getLogger
 
 logging = getLogger()
@@ -55,7 +55,7 @@ time_list = {
 
 
 class SEUGymOrder:
-    def __init__(self, order_list, bot: SEURobot):
+    def __init__(self, order_list, login_data_path):
         self.order_list = order_list
         self.headers = {
             'Accept': 'image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
@@ -68,7 +68,7 @@ class SEUGymOrder:
         }
         self.url_format = 'http://yuyue.seu.edu.cn/eduplus/order/initEditOrder.do?sclId=1&dayInfo=%s&itemId=10&time=%s'
         self.validateimage_url = "http://yuyue.seu.edu.cn:80/eduplus/control/validateimage"
-        self.bot = bot
+        self.login_data_path = login_data_path
         self.lock = threading.Lock()
 
     def getValidateCode(self, browser, url):
@@ -80,11 +80,12 @@ class SEUGymOrder:
         return str(getResutlFromBuffer(response.content))
 
     def _make_order(self, url):
-        while datetime.datetime.now().hour < 8:  # 至少要到8点后才能开始
+        bot = SEURobotFromFile(self.login_data_path)
+        while datetime.datetime.now().minute >= 2:  # 至少要到整点后才能开始
             logging.info('现在是%s，还不能预约' % datetime.datetime.now())
             continue
         logging.info('现在是%s，可以开始预约' % datetime.datetime.now())
-        browser = self.bot.open(url)
+        browser = bot.open(url)
         validateCode = WebDriverWait(browser, 10).until(
             lambda x: x.find_element_by_id('validateCode'))
         self.lock.acquire()
@@ -133,7 +134,7 @@ class SEUGymOrder:
 
 
 class SEUGymOrderFromFile(SEUGymOrder):
-    def __init__(self, path, bot: SEURobot):
+    def __init__(self, path, login_data_path = "loginData.txt"):
         # 记录下要预约什么时间的场馆，以后都不用重复输入
         try:
             with open(path, mode='r', encoding='utf-8') as f:
@@ -179,11 +180,11 @@ class SEUGymOrderFromFile(SEUGymOrder):
             logging.info('预约%s %s的场馆' %
                          (date_list[str(date)], time_list[str(date)][str(time)]))
 
-        super().__init__(order_list, bot)
+        super().__init__(order_list, login_data_path)
 
 
 if __name__ == "__main__":
-    go = SEUGymOrderFromFile("orderList.json", SEURobotFromFile("loginData.txt"))
+    go = SEUGymOrderFromFile("orderList.json", "loginData.txt")
     go.run()
     while True:
         time.sleep(1)

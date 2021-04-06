@@ -4,15 +4,15 @@ import time
 
 from selenium.webdriver.support.wait import WebDriverWait  # 等待页面加载某些元素
 
-from SEURobot import SEURobot, SEURobotFromFile
+from SEURobot import SEURobotFromFile
 from LogConf import getLogger
 
 logging = getLogger()
 
 class SEUClockIn:
-    def __init__(self, bot: SEURobot):
-        self.bot = bot
+    def __init__(self, login_data_path = "loginData.txt"):
         self.url = "http://ehall.seu.edu.cn/qljfwapp2/sys/lwReportEpidemicSeu/*default/index.do"
+        self.login_data_path = login_data_path
 
     @staticmethod
     def _check(browser, text):
@@ -53,13 +53,14 @@ class SEUClockIn:
         for i in range(10):
             logging.info("第%d次尝试"%i)
             try:
-                browser = self.bot.open(self.url)
+                bot = SEURobotFromFile(self.login_data_path)
+                browser = bot.open(self.url)
                 WebDriverWait(browser, 10).until(lambda x: self._check(x, '退出'))
                 self._clock_in(browser)
                 browser.get_screenshot_as_file(
                     "screenshots/" + datetime.datetime.now().strftime("%Y%m%d-%H.%M.%S") + '.png')
                 browser.close()
-                browser = self.bot.open(self.url)
+                browser = bot.open(self.url)
                 WebDriverWait(browser, 10).until(lambda x: self._check(x, '退出'))
                 if self._check(browser, "新增") is False:
                     logging.info("打卡已完成")
@@ -72,7 +73,7 @@ class SEUClockIn:
 
 
 if __name__ == "__main__":
-    clock = SEUClockIn(SEURobotFromFile("loginData.txt"))
+    clock = SEUClockIn()
     clock.run()
     while True:
         time.sleep(1)

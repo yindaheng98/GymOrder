@@ -189,7 +189,7 @@ if __name__ == "__main__":
     while True:
         time.sleep(1)
         now = datetime.datetime.now()
-        if now.hour > 7 and  now.hour < 16 and now.minute > 58:
+        if now.hour >= 7 and  now.hour <= 16 and now.minute > 58:
             logging.info("现在是%s, 可以约了" % datetime.datetime.now())
             go.run()
         else:

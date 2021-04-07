@@ -81,8 +81,12 @@ class SEUGymOrder:
 
     def _make_order(self, url):
         bot = SEURobotFromFile(self.login_data_path)
+        last_sec = datetime.datetime.now().second
         while datetime.datetime.now().minute >= 2:  # 至少要到整点后才能开始
-            logging.info('现在是%s，还不能预约' % datetime.datetime.now())
+            now_sec = datetime.datetime.now().second
+            if now_sec != last_sec:
+                last_sec = now_sec
+                logging.info('现在是%s，还不能预约' % datetime.datetime.now())
             continue
         logging.info('现在是%s，可以开始预约' % datetime.datetime.now())
         browser = bot.open(url)

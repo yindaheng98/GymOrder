@@ -29,8 +29,11 @@ class SEURobot:
         p.click()
         p.send_keys(self.password)
         browser.find_element_by_class_name('auth_login_btn').submit()
-        WebDriverWait(browser, 10).until(
-            lambda x: x.find_element_by_class_name("auth_username"))
+        try:
+            WebDriverWait(browser, 10).until(
+                lambda x: x.find_element_by_class_name("auth_username"))
+        except:
+            print("表征登录成功的元素未等到，忽略")
         self.selenium_cookies = browser.get_cookies()
         for c in self.selenium_cookies:
             del c['domain']

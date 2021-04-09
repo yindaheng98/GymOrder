@@ -8,16 +8,16 @@ def default_webdriver_init():
 
 
 class SEURobot:
-    def __init__(self, username: str, password: str, webdriver_init=default_webdriver_init):
+    def __init__(self, username: str, password: str, login_url, webdriver_init=default_webdriver_init):
         self.webdriver_init = webdriver_init
         self.username = username
         self.password = password
+        self.login_url = login_url
         self._getCookies()
 
     def _getCookies(self):
-        login_url = "https://newids.seu.edu.cn/authserver/login"
         browser = self.webdriver_init()
-        browser.get(login_url)
+        browser.get(self.login_url)
         u = WebDriverWait(browser, 10).until(
             lambda x: x.find_element_by_id("username"))
         u.clear()
@@ -36,7 +36,6 @@ class SEURobot:
             del c['domain']
         browser.close()
 
-
     def open(self, url):
         browser = self.webdriver_init()
         browser.get(url)
@@ -53,7 +52,7 @@ class SEURobot:
 
 
 class SEURobotFromFile(SEURobot):
-    def __init__(self, path: str):
+    def __init__(self, path: str, login_url="https://newids.seu.edu.cn/authserver/login"):
         try:
             with open(path, mode='r', encoding='utf-8') as f:
                 # 去掉换行符
@@ -67,7 +66,7 @@ class SEURobotFromFile(SEURobot):
                 f.write(username + '\n')
                 f.write(password + '\n')
                 f.close()
-        super().__init__(username, password)
+        super().__init__(username, password, login_url)
 
 
 if __name__ == "__main__":

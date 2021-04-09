@@ -8,11 +8,12 @@ def default_webdriver_init():
 
 
 class SEURobot:
-    def __init__(self, username: str, password: str, login_url, webdriver_init=default_webdriver_init):
+    def __init__(self, username: str, password: str, login_url, success_lambda, webdriver_init=default_webdriver_init):
         self.webdriver_init = webdriver_init
         self.username = username
         self.password = password
         self.login_url = login_url
+        self.success_lambda = success_lambda
         self._getCookies()
 
     def _getCookies(self):
@@ -29,11 +30,7 @@ class SEURobot:
         p.click()
         p.send_keys(self.password)
         browser.find_element_by_class_name('auth_login_btn').submit()
-        try:
-            WebDriverWait(browser, 10).until(
-                lambda x: x.find_element_by_class_name("auth_username"))
-        except:
-            print("表征登录成功的元素未等到，忽略")
+        WebDriverWait(browser, 10).until(self.success_lambda)
         self.selenium_cookies = browser.get_cookies()
         for c in self.selenium_cookies:
             del c['domain']
@@ -55,7 +52,9 @@ class SEURobot:
 
 
 class SEURobotFromFile(SEURobot):
-    def __init__(self, path: str, login_url="https://newids.seu.edu.cn/authserver/login"):
+    def __init__(self, path: str,
+                 login_url="https://newids.seu.edu.cn/authserver/login",
+                 success_lambda=lambda x: x.find_element_by_class_name("auth_username")):
         try:
             with open(path, mode='r', encoding='utf-8') as f:
                 # 去掉换行符
@@ -69,7 +68,7 @@ class SEURobotFromFile(SEURobot):
                 f.write(username + '\n')
                 f.write(password + '\n')
                 f.close()
-        super().__init__(username, password, login_url)
+        super().__init__(username, password, login_url, success_lambda)
 
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@ import random
 import time
 import requests
 from requests.cookies import RequestsCookieJar
-
+import threading
 from selenium.webdriver.support.wait import WebDriverWait  # 等待页面加载某些元素
 import json
 from SEURobot import SEURobotFromFile
@@ -40,10 +40,35 @@ class SEULectureOrder:
         headers['Accept'] = 'application/json, text/javascript, */*; q=0.01'
         session.headers.update(headers)
         HD_WID = lecture['WID']
-        logging.info("正在预约" + lecture['JZMC'])
+        logging.info("正在预约《" + lecture['JZMC'] + "》")
         data = {'paramJson': json.dumps({"HD_WID": HD_WID})}
+        last_sec = datetime.datetime.now().second
+        while datetime.datetime.now().minute >= 2:  # 至少要到整点后才能开始
+            now_sec = datetime.datetime.now().second
+            if now_sec != last_sec:
+                last_sec = now_sec
+                logging.info('现在是%s，还不能预约' % datetime.datetime.now())
+            continue
         result = session.post(url, data, headers=headers)
-        logging.info("预约结果" + result.text)
+        logging.info("《" + lecture['JZMC'] + "》预约结果：" + result.text)
+
+    def _make_orders(self):
+        bot = SEURobotFromFile(self.login_data_path,
+                               'http://ehall.seu.edu.cn/gsapp/sys/jzxxtjapp/*default/index.do',
+                               lambda x: x.find_element_by_tag_name('button'))
+        data = self._fetch(bot.getRequestsSession())
+        lectures = data["datas"]['hdxxxs']['rows']
+        thread_list = []
+        for lecture in lectures:
+            if self._can_order(lecture):
+                thread_list.append(
+                    threading.Thread(target=self._order,
+                                     args=(bot.getRequestsSession(), lecture)))
+        for t in thread_list:
+            t.start()
+            logging.info('启动线程')
+        for t in thread_list:
+            t.join()
 
     def _can_order(self, lecture):
         if lecture['YY_WID'] is not None:
@@ -59,16 +84,24 @@ class SEULectureOrder:
         return True
 
     def run(self):
-        bot = SEURobotFromFile(self.login_data_path,
-                               'http://ehall.seu.edu.cn/gsapp/sys/jzxxtjapp/*default/index.do',
-                               lambda x: x.find_element_by_tag_name('button'))
-        data = self._fetch(bot.getRequestsSession())
-        lectures = data["datas"]['hdxxxs']['rows']
-        for lecture in lectures:
-            if self._can_order(lecture):
-                self._order(bot.getRequestsSession(), lecture)
+        while True:
+            try:
+                self._make_orders()
+                break
+            except Exception as e:
+                logging.error("未知错误 %s" % e)
 
 
 if __name__ == "__main__":
-    lecture = SEULectureOrder()
-    print(lecture.run())
+    lo = SEULectureOrder()
+    lo.run()
+    while True:
+        time.sleep(1)
+        now = datetime.datetime.now()
+        if now.minute > 58:
+            logging.info("现在是%s, 可以约了" % datetime.datetime.now())
+            lo.run()
+        else:
+            print("现在是%s, 没到时间，等一会" % datetime.datetime.now())
+            if now.minute % 10 == 0 and now.second % 10 <= 1:
+                logging.info("现在是%s, 没到时间，脚本在线" % datetime.datetime.now())

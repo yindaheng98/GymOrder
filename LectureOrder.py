@@ -1,13 +1,10 @@
 import datetime
-import random
-import time
-import requests
-from requests.cookies import RequestsCookieJar
-import threading
-from selenium.webdriver.support.wait import WebDriverWait  # 等待页面加载某些元素
 import json
-from SEURobot import SEURobotFromFile
+import threading
+import time
+
 from LogConf import getLogger
+from SEURobot import SEURobotFromFile
 
 logging = getLogger()
 

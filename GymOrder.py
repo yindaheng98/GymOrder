@@ -82,6 +82,10 @@ class SEUGymOrder:
     def _make_order(self, url):
         bot = SEURobotFromFile(self.login_data_path)
         last_sec = datetime.datetime.now().second
+        browser = bot.open(url) # 打开预约界面等着
+        validateCode = WebDriverWait(browser, 10).until(
+            lambda x: x.find_element_by_id('validateCode'))
+
         while datetime.datetime.now().minute >= 2:  # 至少要到整点后才能开始
             now_sec = datetime.datetime.now().second
             if now_sec != last_sec:
@@ -89,24 +93,22 @@ class SEUGymOrder:
                 logging.info('现在是%s，还不能预约' % datetime.datetime.now())
             continue
         logging.info('现在是%s，可以开始预约' % datetime.datetime.now())
-        browser = bot.open(url)
-        validateCode = WebDriverWait(browser, 10).until(
-            lambda x: x.find_element_by_id('validateCode'))
         self.lock.acquire()
         validateCode.clear()
         validateCode.click()
         validateCode.send_keys(self.getValidateCode(browser, url))
         browser.execute_script("submit()")
-        time.sleep(2)
-        self.lock.release()
         now = datetime.datetime.now()
-        fname = now.strftime("%Y%m%d-%H.%M.%S.") + str(now.microsecond)
+        fname = now.strftime("%Y%m%d-%H.%M.%S.") + str(now.microsecond) #记下提交的时间
+        time.sleep(0.5)
+        self.lock.release()
+        time.sleep(2)
         browser.get_screenshot_as_file("screenshots/" + fname + '.png')
         browser.close()
 
     def _make_orders(self):
         thread_list = []
-        for order in self.order_list:
+        for order in self.order_list: # order_list按优先级排列，排在前面的先搞
             date, t = str(order[0]), str(order[1])
             logging.info("预约一个%s %s的场馆" % (date_list[date], time_list[date][t]))
             today = datetime.date.today()

@@ -110,7 +110,7 @@ class SEUGymOrder:
             date, t = str(order[0]), str(order[1])
             logging.info("预约一个%s %s的场馆" % (date_list[date], time_list[date][t]))
             today = datetime.date.today()
-            for i in range(1, 3):
+            for i in [2, 1]:
                 day = today + datetime.timedelta(days=i)
                 weekday = str(day.weekday() + 1)
                 if weekday == date:

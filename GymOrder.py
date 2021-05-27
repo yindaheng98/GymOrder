@@ -86,7 +86,7 @@ class SEUGymOrder:
         validateCode = WebDriverWait(browser, 10).until(
             lambda x: x.find_element_by_id('validateCode'))
 
-        while datetime.datetime.now().minute >= 2:  # 至少要到整点后才能开始
+        while datetime.datetime.now().minute >= 10:  # 至少要到整点后才能开始
             now_sec = datetime.datetime.now().second
             if now_sec != last_sec:
                 last_sec = now_sec
@@ -100,9 +100,8 @@ class SEUGymOrder:
         browser.execute_script("submit()")
         now = datetime.datetime.now()
         fname = now.strftime("%Y%m%d-%H.%M.%S.") + str(now.microsecond) #记下提交的时间
-        time.sleep(0.5)
         self.lock.release()
-        time.sleep(2)
+        time.sleep(1)
         browser.get_screenshot_as_file("screenshots/" + fname + '.png')
         browser.close()
 

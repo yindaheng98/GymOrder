@@ -197,7 +197,9 @@ if __name__ == "__main__":
         now = datetime.datetime.now()
         if now.hour >= 7 and  now.hour <= 16 and now.minute > 58:
             logging.info("现在是%s, 可以约了" % datetime.datetime.now())
-            go.run()
+            for i in range(1,6):
+                logging.info("第%d次尝试" % i)
+                go.run()
         else:
             print("现在是%s, 没到时间，等一会" % datetime.datetime.now())
             if now.minute % 10 == 0 and now.second % 10 <= 1:

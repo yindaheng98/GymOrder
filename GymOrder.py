@@ -8,9 +8,9 @@ from selenium.webdriver.support.wait import WebDriverWait  # 等待页面加载�
 
 from PicProcess import getResutlFromBuffer
 from SEURobot import SEURobotFromFile
-from LogConf import getLogger
+from logger import logger
 
-logging = getLogger()
+logging = logger
 
 date_list = {
     '1': '周一',

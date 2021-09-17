@@ -5,9 +5,9 @@ import time
 from selenium.webdriver.support.wait import WebDriverWait  # 等待页面加载某些元素
 
 from SEURobot import SEURobotFromFile
-from LogConf import getLogger
+from logger import logger
 
-logging = getLogger()
+logging = logger
 
 class SEUClockIn:
     def __init__(self, login_data_path = "loginData.txt"):
@@ -56,6 +56,7 @@ class SEUClockIn:
                 bot = SEURobotFromFile(self.login_data_path)
                 browser = bot.open(self.url)
                 WebDriverWait(browser, 10).until(lambda x: self._check(x, '退出'))
+                browser.implicitly_wait(random.randint(0, 60))
                 self._clock_in(browser)
                 browser.get_screenshot_as_file(
                     "screenshots/" + datetime.datetime.now().strftime("%Y%m%d-%H.%M.%S") + '.png')

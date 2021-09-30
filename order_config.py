@@ -43,11 +43,28 @@ time_list_weekend = [  # 节假日可选的时间
     '18:00-19:00',
 ]
 
-order_config = [
+time_config = [
     next_weekday('周六') + " " + time_list_weekend[6],
     next_weekday('周六') + " " + time_list_weekend[7],
     next_weekday('周日') + " " + time_list_weekend[6],
     next_weekday('周日') + " " + time_list_weekend[7],
 ]
 
-print(order_config)
+print(time_config)
+
+
+def make_post(time, validate_code):
+    return {
+        'orderVO.useTime': time,
+        'orderVO.itemId': "10",
+        'orderVO.useMode': "2",
+        'orderVO.phone': "18851899135",
+        'orderVO.remark': "",
+        'validateCode': validate_code
+    }
+
+
+post_config = [lambda validate_code: make_post(time, validate_code) for time in time_config]
+
+for pc in post_config:
+    print(pc("0000"))

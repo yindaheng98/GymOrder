@@ -8,7 +8,10 @@ def default_webdriver_init():
 
 
 class SEURobot:
-    def __init__(self, username: str, password: str, login_url, success_lambda, webdriver_init=default_webdriver_init):
+    def __init__(self, username: str, password: str,
+                 login_url="https://newids.seu.edu.cn/authserver/login",
+                 success_lambda=lambda x: x.find_element_by_class_name("auth_username"),
+                 webdriver_init=default_webdriver_init):
         self.webdriver_init = webdriver_init
         self.username = username
         self.password = password

@@ -52,19 +52,3 @@ time_config = [
 
 print(time_config)
 
-
-def make_post(time, validate_code):
-    return {
-        'orderVO.useTime': time,
-        'orderVO.itemId': "10",
-        'orderVO.useMode': "2",
-        'orderVO.phone': "18851899135",
-        'orderVO.remark': "",
-        'validateCode': validate_code
-    }
-
-
-post_config = [lambda validate_code: make_post(time, validate_code) for time in time_config]
-
-for pc in post_config:
-    print(pc("0000"))

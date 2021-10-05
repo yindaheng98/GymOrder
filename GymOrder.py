@@ -57,12 +57,18 @@ class SEUGymOrder:
     def _make_order(self, pdg):
         validate_code = self.getValidateCode()
         post_data = pdg(validate_code)
-        logger.debug("post data is :\n" + str(post_data))
+        logger.info("预约参数 :\n" + str(post_data))
         response = self.session.post(self.order_url, data=post_data)
-        logger.info("response is :\n" + str(response.content.decode('utf8')))
+        logger.info("预约结果 :\n" + str(response.content.decode('utf8')))
 
     def make_orders(self):
         for pdg in self.post_data_gen:
+            now = datetime.datetime.now()
+            if now.minute > 58:
+                logging.info("现在是%s，稍等一会，整点开约" % now)
+                while datetime.datetime.now().minute > 58:
+                    pass
+            logging.info("现在是%s, 直接开约" % now)
             self._make_order(pdg)
 
     def run(self):
@@ -72,7 +78,7 @@ class SEUGymOrder:
                 self.make_orders()
                 break
             except Exception as e:
-                logging.error("未知错误 %s" % e)
+                logging.error("出错了: %s" % e)
 
 
 if __name__ == "__main__":

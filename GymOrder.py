@@ -1,13 +1,8 @@
 import datetime
-import json
 import threading
 import time
 
-import requests
-from selenium.webdriver.support.wait import WebDriverWait  # 等待页面加载某些元素
-
 from PicProcess import getResutlFromBuffer
-from SEURobot import SEURobotFromFile
 from logger import logger
 
 logging = logger

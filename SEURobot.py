@@ -1,17 +1,13 @@
 import requests
-from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 
-
-def default_webdriver_init():
-    return webdriver.Edge(executable_path='./msedgedriver.exe')
+from driver_config import webdriver_init
 
 
 class SEURobot:
     def __init__(self, username: str, password: str,
                  login_url="https://newids.seu.edu.cn/authserver/login",
-                 success_lambda=lambda x: x.find_element_by_class_name("auth_username"),
-                 webdriver_init=default_webdriver_init):
+                 success_lambda=lambda x: x.find_element_by_class_name("auth_username")):
         self.webdriver_init = webdriver_init
         self.username = username
         self.password = password

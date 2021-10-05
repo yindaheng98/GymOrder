@@ -12,54 +12,15 @@ from logger import logger
 
 logging = logger
 
-date_list = {
-    '1': '周一',
-    '2': '周二',
-    '3': '周三',
-    '4': '周四',
-    '5': '周五',
-    '6': '周六',
-    '7': '周日',
-}
-
-time_list_weekday = {
-    '1': '11:30-12:30',
-    '2': '12:30-13:30',
-    '3': '18:00-19:00',
-    '4': '19:00-20:00',
-    '5': '20:00-21:00',
-}
-
-time_list_weekend = {
-    '1': '09:00-10:00',
-    '2': '10:00-11:00',
-    '3': '11:00-12:00',
-    '4': '12:00-13:00',
-    '5': '13:00-14:00',
-    '6': '14:00-15:00',
-    '7': '15:00-16:00',
-    '8': '16:00-17:00',
-    '9': '17:00-18:00',
-    '10': '18:00-19:00',
-}
-
-time_list = {
-    '1': time_list_weekday,
-    '2': time_list_weekday,
-    '3': time_list_weekday,
-    '4': time_list_weekday,
-    '5': time_list_weekday,
-    '6': time_list_weekend,
-    '7': time_list_weekend,
-}
-
 
 class SEUGymOrder:
     def __init__(self, time_config, get_seubot):
         self.get_seubot = get_seubot
         self.bot = None
+        self.session = None
         self.validateimage_url = "http://yuyue.seu.edu.cn:80/eduplus/control/validateimage"
         self.order_url = "http://yuyue.seu.edu.cn/eduplus/order/order/order/insertOredr.do?sclId=1"
+        self.cookie_refresher = "http://yuyue.seu.edu.cn/eduplus/order/fetchMyOrders.do?sclId=1"
         self.headers = {
             'Accept': 'image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
             'Accept-Encoding': 'gzip, deflate',
@@ -84,21 +45,25 @@ class SEUGymOrder:
         self.lock = threading.Lock()
 
     def getValidateCode(self):
-        session = self.bot.getRequestsSession()
         headers = self.headers.copy()
-        headers["Referer"] = self.validateimage_url
-        response = session.get(self.validateimage_url, headers=headers)
+        response = self.session.get(self.validateimage_url, headers=headers)
         return str(getResutlFromBuffer(response.content))
 
     def login(self):
         self.bot = self.get_seubot()
+        self.bot.open(self.cookie_refresher)
+        self.session = self.bot.getRequestsSession()
+
+    def _make_order(self, pdg):
+        validate_code = self.getValidateCode()
+        post_data = pdg(validate_code)
+        logger.debug("post data is :\n" + str(post_data))
+        response = self.session.post(self.order_url, data=post_data)
+        logger.info("response is :\n" + str(response.content.decode('utf8')))
 
     def make_orders(self):
-        session = self.bot.getRequestsSession()
         for pdg in self.post_data_gen:
-            validate_code = self.getValidateCode()
-            post_data = pdg(validate_code)
-            session.post(self.order_url, data=post_data)
+            self._make_order(pdg)
 
     def run(self):
         while True:

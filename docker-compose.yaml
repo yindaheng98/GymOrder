@@ -1,0 +1,21 @@
+version: "3"
+services:
+  ttrss-archiver:
+    build: .
+    restart: always
+    depends_on:
+      - browserless
+    logging:
+      options:
+        max-size: 16M
+  browserless:
+    # See issue 6680
+    image: browserless/chrome:1.43-chrome-stable
+    restart: always
+    ulimits:
+      core:
+        hard: 0
+        soft: 0
+    logging:
+      options:
+        max-size: 16M

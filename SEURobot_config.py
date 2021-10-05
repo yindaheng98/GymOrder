@@ -13,5 +13,8 @@ if __name__ == "__main__":
     browser = seu_bot.open(
         "http://yuyue.seu.edu.cn/eduplus/order/fetchMyOrders.do?sclId=1")
     browser.implicitly_wait(10)
+    session = seu_bot.getRequestsSession()
+    print(session.get("http://yuyue.seu.edu.cn/eduplus/control/validateimage").content)
+    browser.get("http://yuyue.seu.edu.cn/eduplus/control/validateimage")
     time.sleep(10)
     browser.close()

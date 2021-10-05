@@ -35,8 +35,6 @@ class SEURobot:
         browser.find_element_by_class_name('auth_login_btn').submit()
         WebDriverWait(browser, 10).until(self.success_lambda)
         self.selenium_cookies = browser.get_cookies()
-        for c in self.selenium_cookies:
-            del c['domain']
         browser.close()
 
     def open(self, url):
@@ -45,6 +43,7 @@ class SEURobot:
         for cookie in self.selenium_cookies:
             browser.add_cookie(cookie)
         browser.get(url)
+        self.selenium_cookies = browser.get_cookies()
         return browser
 
     def getRequestsSession(self):

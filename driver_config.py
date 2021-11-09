@@ -11,3 +11,6 @@ def webdriver_init():
         command_executor='http://browserless:3000/webdriver',
         desired_capabilities=chrome_options.to_capabilities()
     )  # webdriver.Edge(executable_path='./msedgedriver.exe')
+
+def webdriver_init_local():
+    return webdriver.Edge(executable_path='./msedgedriver.exe')

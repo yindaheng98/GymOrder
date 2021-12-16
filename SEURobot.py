@@ -1,7 +1,7 @@
 import requests
 from selenium.webdriver.support.ui import WebDriverWait
 
-from driver_config import webdriver_init
+from driver_config import webdriver_init_local as webdriver_init
 
 
 class SEURobot:

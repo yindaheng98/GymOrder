@@ -13,7 +13,7 @@ class SEUGymOrder:
         self.get_seubot = get_seubot
         self.bot = None
         self.session = None
-        self.validateimage_url = "http://yuyue.seu.edu.cn:80/eduplus/control/validateimage"
+        self.validateimage_url = "http://yuyue.seu.edu.cn:80/eduplus/validateimage"
         self.order_url = "http://yuyue.seu.edu.cn/eduplus/order/order/order/insertOredr.do?sclId=1"
         self.cookie_refresher = "http://yuyue.seu.edu.cn/eduplus/order/fetchMyOrders.do?sclId=1"
         self.headers = {

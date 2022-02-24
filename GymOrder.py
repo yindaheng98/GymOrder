@@ -14,7 +14,7 @@ class SEUGymOrder:
         self.bot = None
         self.session = None
         self.validateimage_url = "http://yuyue.seu.edu.cn:80/eduplus/validateimage"
-        self.order_url = "http://yuyue.seu.edu.cn/eduplus/order/order/order/insertOredr.do?sclId=1"
+        self.order_url = "http://yuyue.seu.edu.cn/eduplus/order/order/order/judgeUseUser.do?sclId=1"
         self.cookie_refresher = "http://yuyue.seu.edu.cn/eduplus/order/fetchMyOrders.do?sclId=1"
         self.headers = {
             'Accept': 'image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
@@ -28,11 +28,10 @@ class SEUGymOrder:
 
         def make_post(t, validate_code):
             return {
-                'orderVO.useTime': t,
-                'orderVO.itemId': "10",
-                'orderVO.useMode': "2",
-                'orderVO.phone': "18851899135",
-                'orderVO.remark': "",
+                'useTime': t,
+                'itemId': "10",
+                'allowHalf': 2,
+                'phone': "18851899135",
                 'validateCode': validate_code
             }
 

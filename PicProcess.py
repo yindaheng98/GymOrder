@@ -1,5 +1,7 @@
 from PIL import Image
 from io import BytesIO
+#验证码识别
+
 #Constances
 BACKCOLOR = 255
 TEXTCOLOR = 0

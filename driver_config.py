@@ -8,7 +8,7 @@ chrome_options.add_argument("--headless")
 
 def webdriver_init():
     return webdriver.Remote(
-        command_executor='http://browserless:3000/webdriver',
+        command_executor='http://localhost:3000/webdriver',
         desired_capabilities=chrome_options.to_capabilities()
     )  # webdriver.Edge(executable_path='./msedgedriver.exe')
 

@@ -1,6 +1,7 @@
 import datetime
 import threading
 import time
+from selenium.webdriver.support.ui import WebDriverWait
 
 from PicProcess import getResutlFromBuffer
 from logger import logger
@@ -10,9 +11,8 @@ logging = logger
 
 class SEUGymOrder:
     def __init__(self, time_config, get_seubot):
-        self.get_seubot = get_seubot
-        self.bot = None
-        self.session = None
+        self.bot = get_seubot()
+        self.session = self.bot.getRequestsSession()
         self.validateimage_url = "http://yuyue.seu.edu.cn:80/eduplus/validateimage"
         self.order_url = "http://yuyue.seu.edu.cn/eduplus/order/order/order/judgeUseUser.do?sclId=1"
         self.cookie_refresher = "http://yuyue.seu.edu.cn/eduplus/order/fetchMyOrders.do?sclId=1"
@@ -25,18 +25,11 @@ class SEUGymOrder:
             'Referer': 'http://yuyue.seu.edu.cn/eduplus/order/order/initEditOrder.do?sclId=1',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36 Edg/89.0.774.54',
         }
+        
+        url_f = "http://yuyue.seu.edu.cn/eduplus/order/initEditOrder.do?sclId=1&dayInfo=%s&itemId=10&time=%s"
+        self.page_urls = [(url_f % t) for t in time_config]
 
-        def make_post(t, validate_code):
-            return {
-                'useTime': t,
-                'itemId': "10",
-                'allowHalf': 2,
-                'phone': "18851899135",
-                'validateCode': validate_code
-            }
-
-        self.post_data_gen = [lambda validate_code: make_post(t, validate_code) for t in time_config]
-        self.lock = threading.Lock()
+        self.browsers = {}
 
     def getValidateCode(self):
         headers = self.headers.copy()
@@ -44,26 +37,31 @@ class SEUGymOrder:
         return str(getResutlFromBuffer(response.content))
 
     def login(self):
-        self.bot = self.get_seubot()
-        self.bot.open(self.cookie_refresher)
+        browser = self.bot.open(self.cookie_refresher)
         self.session = self.bot.getRequestsSession()
 
-    def _make_order(self, pdg):
-        validate_code = self.getValidateCode()
-        post_data = pdg(validate_code)
-        logger.info("预约参数 :\n" + str(post_data))
-        response = self.session.post(self.order_url, data=post_data)
-        logger.info("预约结果 :\n" + str(response.content.decode('utf8')))
+    def open_order(self, page_url):
+        browser = self.bot.open(page_url)
+        WebDriverWait(browser, 10).until(
+            lambda x: x.find_element_by_id('validateCode')
+        )
+        self.browsers[page_url] = browser
+
+    def make_order(self, page_url, validate_code):
+        browser = self.browsers[page_url]
+        validateCode = browser.find_element_by_id('validateCode')
+        validateCode.clear()
+        validateCode.click()
+        validateCode.send_keys(str(validate_code))
+        browser.execute_script("submit()")
+        browser.get_screenshot_as_file("screenshots/"+fname+'.png')
+        del browsers[page_url]
 
     def make_orders(self):
-        for pdg in self.post_data_gen:
-            now = datetime.datetime.now()
-            if now.minute > 58:
-                logging.info("现在是%s，稍等一会，整点开约" % now)
-                while datetime.datetime.now().minute > 58:
-                    pass
-            logging.info("现在是%s, 直接开约" % now)
-            self._make_order(pdg)
+        for page_url in self.page_urls:
+            self.open_order(page_url)
+            validate_code = self.getValidateCode()
+            self.make_order(page_url, validate_code)
 
     def run(self):
         while True:
@@ -81,15 +79,3 @@ if __name__ == "__main__":
 
     go = SEUGymOrder(time_config, get_seubot)
     go.run()
-    while True:
-        time.sleep(1)
-        now = datetime.datetime.now()
-        if 7 <= now.hour <= 16 and now.minute > 58:
-            logging.info("现在是%s, 可以约了" % datetime.datetime.now())
-            for i in range(1, 6):
-                logging.info("第%d次尝试" % i)
-                go.run()
-        else:
-            print("现在是%s, 没到时间，等一会" % datetime.datetime.now())
-            if now.minute % 10 == 0 and now.second % 10 <= 1:
-                logging.info("现在是%s, 没到时间，脚本在线" % datetime.datetime.now())

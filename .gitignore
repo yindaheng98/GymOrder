@@ -2,8 +2,7 @@ login_config.py
 loginData.txt
 msedgedriver.exe
 screenshots/
-log.txt
-gym-log.txt
+logs/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

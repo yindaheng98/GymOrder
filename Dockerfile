@@ -4,4 +4,3 @@ COPY *.py /
 COPY Models /Models
 WORKDIR /
 RUN mkdir /logs
-CMD python GymOrder.py

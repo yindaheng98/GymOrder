@@ -44,10 +44,10 @@ time_list_weekend = [  # 节假日可选的时间
 ]
 
 time_config = [
-    next_weekday('周六') + " " + time_list_weekend[6],
-    next_weekday('周六') + " " + time_list_weekend[7],
-    next_weekday('周日') + " " + time_list_weekend[6],
-    next_weekday('周日') + " " + time_list_weekend[7],
+    (next_weekday('周六'), time_list_weekend[6]),
+    (next_weekday('周六'), time_list_weekend[7]),
+    (next_weekday('周日'), time_list_weekend[6]),
+    (next_weekday('周日'), time_list_weekend[7]),
 ]
 
 print(time_config)

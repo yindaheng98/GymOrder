@@ -1,17 +1,20 @@
 version: "3"
 services:
-  ttrss-archiver:
+  gym:
     build: .
     restart: always
+    network_mode: host
     depends_on:
       - browserless
     logging:
       options:
         max-size: 16M
+    command: python GymOrder.py
   browserless:
     # See issue 6680
-    image: browserless/chrome:1.43-chrome-stable
+    image: browserless/chrome:1-chrome-stable
     restart: always
+    network_mode: host
     ulimits:
       core:
         hard: 0

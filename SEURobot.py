@@ -1,14 +1,14 @@
 import requests
 from selenium.webdriver.support.ui import WebDriverWait
 
-from driver_config import webdriver_init as webdriver_init
+from driver_config import webdriver_init_local as webdriver_init
 
 
 class SEURobot:
     def __init__(self, username: str, password: str,
                  login_url="https://newids.seu.edu.cn/authserver/login",
                  success_lambda=lambda x: x.find_element_by_class_name("auth_username")):
-        self.webdriver_init = webdriver_init
+        self.browser = webdriver_init()
         self.username = username
         self.password = password
         self.login_url = login_url
@@ -16,7 +16,7 @@ class SEURobot:
         self._getCookies()
 
     def _getCookies(self):
-        browser = self.webdriver_init()
+        browser = self.browser
         browser.get(self.login_url)
         u = WebDriverWait(browser, 10).until(
             lambda x: x.find_element_by_id("username"))
@@ -31,13 +31,9 @@ class SEURobot:
         browser.find_element_by_class_name('auth_login_btn').submit()
         WebDriverWait(browser, 10).until(self.success_lambda)
         self.selenium_cookies = browser.get_cookies()
-        browser.close()
 
     def open(self, url):
-        browser = self.webdriver_init()
-        browser.get(url)
-        for cookie in self.selenium_cookies:
-            browser.add_cookie(cookie)
+        browser = self.browser
         browser.get(url)
         self.selenium_cookies = browser.get_cookies()
         return browser

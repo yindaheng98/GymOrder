@@ -1,7 +1,7 @@
 import requests
 from selenium.webdriver.support.ui import WebDriverWait
 
-from driver_config import webdriver_init_local as webdriver_init
+from driver_config import webdriver_init as webdriver_init
 
 
 class SEURobot:
@@ -45,33 +45,16 @@ class SEURobot:
     def getRequestsSession(self):
         requests_session = requests.Session()
         for c in self.selenium_cookies:
+            print("Cookie: %s %s" % (c['name'], c['value']))
             requests_session.cookies.set(c['name'], c['value'])
         return requests_session
 
-
-class SEURobotFromFile(SEURobot):
-    def __init__(self, path: str,
-                 login_url="https://newids.seu.edu.cn/authserver/login",
-                 success_lambda=lambda x: x.find_element_by_class_name("auth_username")):
-        try:
-            with open(path, mode='r', encoding='utf-8') as f:
-                # 去掉换行符
-                username = f.readline().strip()
-                password = f.readline().strip()
-                f.close()
-        except FileNotFoundError:
-            with open(path, mode='w', encoding='utf-8') as f:
-                username = input('Please Enter Your Username: ')
-                password = input('Then Please Enter Your Password: ')
-                f.write(username + '\n')
-                f.write(password + '\n')
-                f.close()
-        super().__init__(username, password, login_url, success_lambda)
-
-
 if __name__ == "__main__":
-    bot = SEURobotFromFile('loginData.txt')
+    from login_config import username, password
+
+    bot = SEURobot(username, password)
     browser = bot.open(
         "http://ehall.seu.edu.cn/qljfwapp2/sys/lwReportEpidemicSeu/*default/index.do")
+    print(bot.getRequestsSession())
     browser.implicitly_wait(10)
     browser.close()
